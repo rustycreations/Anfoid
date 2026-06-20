@@ -94,6 +94,25 @@ local Passed, Statement = pcall(function()
 				ZIndexBehavior = "Global"
 			})
 			-- //
+			local ScreenGui_Watermark = utility:RenderObject("TextLabel", {
+				AnchorPoint = Vector2.new(1, 1),
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				BackgroundTransparency = 1,
+				BorderColor3 = Color3.fromRGB(0, 0, 0),
+				BorderSizePixel = 0,
+				Parent = ScreenGui,
+				Position = UDim2.new(1, isMobile and -8 or -12, 1, isMobile and -8 or -12),
+				Size = UDim2.new(0, 0, 0, 0),
+				Font = "Code",
+				RichText = true,
+				Text = "<b>PuppyWare</b>  |  v1.0.0",
+				TextColor3 = Color3.fromRGB(80, 80, 80),
+				TextSize = isMobile and 11 or 12,
+				TextStrokeTransparency = 1,
+				TextXAlignment = "Right",
+				RenderHidden = true
+			})
+			--
 			local ScreenGui_MainFrame = utility:RenderObject("Frame", {
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundColor3 = Color3.fromRGB(25, 25, 25),
@@ -169,14 +188,20 @@ local Passed, Statement = pcall(function()
 				Size = UDim2.new(1, -6, 1, -6)
 			})
 			-- //
-			local InnerBorder_InnerFrame_Tabs = utility:RenderObject("Frame", {
+			local InnerBorder_InnerFrame_Tabs = utility:RenderObject("ScrollingFrame", {
 				BackgroundColor3 = Color3.fromRGB(12, 12, 12),
 				BackgroundTransparency = 0,
 				BorderColor3 = Color3.fromRGB(0, 0, 0),
 				BorderSizePixel = 0,
 				Parent = MainFrame_InnerBorder_InnerFrame,
 				Position = UDim2.new(0, 0, 0, 4),
-				Size = UDim2.new(0, 74, 1, -4)
+				Size = UDim2.new(0, 74, 1, -4),
+				AutomaticCanvasSize = "Y",
+				CanvasSize = UDim2.new(0, 0, 0, 0),
+				ScrollBarImageColor3 = Color3.fromRGB(12, 12, 12),
+				ScrollBarImageTransparency = 1,
+				ScrollBarThickness = 0,
+				VerticalScrollBarInset = "None"
 			})
 			--
 			local InnerBorder_InnerFrame_Pages = utility:RenderObject("Frame", {
@@ -2416,93 +2441,63 @@ local Passed, Statement = pcall(function()
 			return Content
 		end
 	end
+	-- [[  // Settings // ]]
+	local AimbotSettings = {
+		Enabled = false,
+		SilentAim = false,
+		AlwaysActive = false,
+		Sticky = false,
+		FOV = 90,
+		Smoothing = 5,
+		WallCheck = true,
+		TeamCheck = true,
+		VisibleOnly = true
+	}
+	--
+	local FovCircleSettings = { Enabled = false }
+	local stickyTarget = nil
+	--
 	-- [[  // Main // ]]
 	local window = library:CreateWindow({})
 	--
-	local rage = window:CreatePage({Icon = "rbxassetid://8547236654"})
+	local combat = window:CreatePage({Icon = "rbxassetid://8547236654"})
 	local antiaim = window:CreatePage({Icon = "rbxassetid://8547310764"})
 	local aimbot = window:CreatePage({Icon = "rbxassetid://8547249956"})
 	local visuals = window:CreatePage({Icon = "rbxassetid://8547254518"})
-	local setting = window:CreatePage({Icon = "rbxassetid://8547256547"})
+	local misc = window:CreatePage({Icon = "rbxassetid://8547256547"})
 	local skins = window:CreatePage({Icon = "rbxassetid://8547258459"})
 	local config = window:CreatePage({Icon = "rbxassetid://8547269749"})
 	--
-	local playeresp = visuals:CreateSection({Name = "Player ESP", Size = 330, Side = "Left"})
-	local coloredmodels = visuals:CreateSection({Name = "Colored models", Size = 158, Side = "Left"})
-	local otheresp = visuals:CreateSection({Name = "Other ESP", Size = 200, Side = "Right"})
-	local effects = visuals:CreateSection({Name = "Effects", Size = 288, Side = "Right"})
+	local aimbotSec = aimbot:CreateSection({Name = "Aimbot", Size = 220, Side = "Left"})
+	local targetSec = aimbot:CreateSection({Name = "Target", Size = 180, Side = "Left"})
+	local fovSec = aimbot:CreateSection({Name = "Visual", Size = 80, Side = "Right"})
 	--
-    local keybn = playeresp:CreateKeybind({Name = "Activation Type"})
-	playeresp:CreateToggle({Name = "Teammates", State = false})
-	playeresp:CreateColorpicker({Name = "Visualize aimbot", State = Color3.fromRGB(255, 0, 0)})
-	playeresp:CreateColorpicker({Name = "Bounding Box", State = Color3.fromRGB(50, 100, 200)})
-	playeresp:CreateColorpicker({Name = "Glow", State = Color3.fromRGB(25, 180, 75)})
-	playeresp:CreateToggle({Name = "Dormant", State = false})
-	playeresp:CreateToggle({Name = "Bounding Box", State = true})
-	playeresp:CreateToggle({Name = "Health Bar", State = true})
-	playeresp:CreateToggle({Name = "Name", State = true})
-	playeresp:CreateToggle({Name = "Flags", State = true})
-	playeresp:CreateToggle({Name = "Weapon Text", State = false})
-	playeresp:CreateToggle({Name = "Weapon Icon", State = false})
-	playeresp:CreateToggle({Name = "Ammo", State = false})
-	playeresp:CreateToggle({Name = "Distance", State = false})
-	playeresp:CreateToggle({Name = "Glow", State = true})
-	playeresp:CreateToggle({Name = "Hit Marker", State = true})
-	playeresp:CreateToggle({Name = "Hit Marker Sound", State = true})
-	playeresp:CreateToggle({Name = "Visualize sounds", State = true})
-	playeresp:CreateToggle({Name = "Line of sight", State = false})
-	playeresp:CreateToggle({Name = "Money", State = false})
-	playeresp:CreateToggle({Name = "Skeleton", State = false})
-	playeresp:CreateToggle({Name = "Out of FOV arrow", State = true})
-	playeresp:CreateSlider({State = 12, Max = 30, Min = 1, Decimals = 1, Suffix = "px"})
-	playeresp:CreateSlider({State = 100, Max = 100, Min = 1, Decimals = 1, Suffix = "%"})
+	aimbotSec:CreateToggle({Name = "Enabled", State = false, callback = function(v) AimbotSettings.Enabled = v end})
+	aimbotSec:CreateToggle({Name = "Silent Aim", State = false, callback = function(v) AimbotSettings.SilentAim = v end})
+	aimbotSec:CreateToggle({Name = "Always Active", State = false, callback = function(v) AimbotSettings.AlwaysActive = v end})
+	aimbotSec:CreateToggle({Name = "Sticky Aim", State = false, callback = function(v) AimbotSettings.Sticky = v; if not v then stickyTarget = nil end end})
+	aimbotSec:CreateSlider({Name = "FOV", Min = 10, Max = 360, State = 90, Decimals = 1, callback = function(v) AimbotSettings.FOV = v end})
+	aimbotSec:CreateSlider({Name = "Smoothing", Min = 1, Max = 10, State = 5, Decimals = 1, callback = function(v) AimbotSettings.Smoothing = v end})
 	--
-	coloredmodels:CreateToggle({Name = "Player", State = false})
-	coloredmodels:CreateToggle({Name = "Player behind wall", State = false})
-	coloredmodels:CreateToggle({Name = "Teammate", State = false})
-	coloredmodels:CreateToggle({Name = "Teammate behind wall", State = false})
-	coloredmodels:CreateToggle({Name = "Local player", State = false})
-	coloredmodels:CreateToggle({Name = "Local player fake", State = false})
-	coloredmodels:CreateToggle({Name = "Ragdolls", State = false})
-	coloredmodels:CreateToggle({Name = "Hands", State = false})
-	coloredmodels:CreateToggle({Name = "Weapon viewmodel", State = false})
-	coloredmodels:CreateToggle({Name = "Disable model occlusion", State = false})
-	coloredmodels:CreateToggle({Name = "Shadow", State = false})
-	coloredmodels:CreateToggle({Name = "Props", State = false})
+	targetSec:CreateToggle({Name = "Wall Check", State = true, callback = function(v) AimbotSettings.WallCheck = v end})
+	targetSec:CreateToggle({Name = "Team Check", State = true, callback = function(v) AimbotSettings.TeamCheck = v end})
+	targetSec:CreateToggle({Name = "Visible Only", State = true, callback = function(v) AimbotSettings.VisibleOnly = v end})
 	--
-	otheresp:CreateToggle({Name = "Radar", State = false})
-	otheresp:CreateMultibox({Name = "Dropped weapons", State = {1, 3, 4}, Options = {"Icon", "Text", "Glow", "Ammo", "Distance"}})
-	otheresp:CreateToggle({Name = "Grenades", State = false})
-	otheresp:CreateToggle({Name = "Inaccuracy overlay", State = false})
-	otheresp:CreateToggle({Name = "Recoil overlay", State = false})
-	otheresp:CreateToggle({Name = "Crosshair", State = false})
-	otheresp:CreateToggle({Name = "Bomb", State = false})
-	otheresp:CreateToggle({Name = "Grenade trajectory", State = false})
-	otheresp:CreateToggle({Name = "Grenade proximity warning", State = false})
-	otheresp:CreateToggle({Name = "Spectators", State = false})
-	otheresp:CreateToggle({Name = "Penetration reticle", State = false})
-	otheresp:CreateToggle({Name = "Hostages", State = false})
-	otheresp:CreateToggle({Name = "Shared esp", State = false})
-	otheresp:CreateToggle({Name = "Upgrade tablet", State = false})
-	otheresp:CreateToggle({Name = "Danger Zone items", State = false})
+	fovSec:CreateToggle({Name = "FOV Circle", State = false, callback = function(v) FovCircleSettings.Enabled = v end})
 	--
-	effects:CreateToggle({Name = "Remove flashbang effects", State = false})
-	effects:CreateToggle({Name = "Remove smoke grenades", State = false})
-	effects:CreateToggle({Name = "Remove fog", State = false})
-	effects:CreateToggle({Name = "Remove grass", State = false})
-	effects:CreateToggle({Name = "Remove skybox", State = false})
-	effects:CreateDropdown({Name = "Visual Recoil Adjustment", State = 1, Options = {"Off", "Remove Shake", "Remove All"}})
-	effects:CreateSlider({Name = "Transparent walls", State = 50, Max = 100, Min = 0, Decimals = 1, Suffix = "%"})
-	effects:CreateSlider({Name = "Transparent props", State = 50, Max = 100, Min = 0, Decimals = 1, Suffix = "%"})
-	effects:CreateDropdown({Name = "Brightness Adjustment", State = 1, Options = {"Off", "Night Mode", "Full Bright"}})
-	effects:CreateToggle({Name = "Remove scope overlay", State = false})
-	effects:CreateToggle({Name = "Instant scope", State = false})
-	effects:CreateToggle({Name = "Disable post processing", State = false})
-	effects:CreateToggle({Name = "Force third person (alive)", State = false})
-	effects:CreateToggle({Name = "Force third person (dead)", State = false})
-	effects:CreateToggle({Name = "Disable rendering of teamates", State = false})
-	effects:CreateToggle({Name = "Bullet tracers", State = false})
-	effects:CreateToggle({Name = "Bullet impacts", State = false})
-	effects:CreateToggle({Name = "Override Skybox", State = false})
+	local visEsp = visuals:CreateSection({Name = "ESP", Size = 220, Side = "Left"})
+	local visOther = visuals:CreateSection({Name = "Other", Size = 180, Side = "Right"})
+	--
+	visEsp:CreateToggle({Name = "Box ESP", State = false})
+	visEsp:CreateToggle({Name = "Name ESP", State = false})
+	visEsp:CreateToggle({Name = "Tracers", State = false})
+	visEsp:CreateToggle({Name = "Highlight", State = false})
+	--
+	visOther:CreateToggle({Name = "FOV Circle", State = false, callback = function(v) FovCircleSettings.Enabled = v end})
+	--
+	local miscUtil = misc:CreateSection({Name = "Utility", Size = 120, Side = "Left"})
+	--
+	miscUtil:CreateToggle({Name = "Anti-AFK", State = false})
+	miscUtil:CreateToggle({Name = "No Fall Damage", State = false})
 end)
 --
